@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
 import { uploads } from './middleware/upload.js';
-import file from './models/filemodel.js';
+import file from './models/Filemodel.js';
 import path from 'path';
 import fs from 'fs';
 import { configDotenv } from 'dotenv';
