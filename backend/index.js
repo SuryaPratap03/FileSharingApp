@@ -10,7 +10,7 @@ configDotenv();
 
 const app = express();
 
-const PORT =3000;
+const PORT ='https://filesharingapp-i2un.onrender.com' ;
 mongoose.connect(process.env.MONGODB_URL)
 .then(()=>{
     console.log('Mongodb Connected');
@@ -29,7 +29,7 @@ app.post('/upload',uploads.single('file'),async(req,res)=>{
     const {originalname,path} = req?.file;
     const newfile = await file({name:originalname,path:path});
     newfile.save();
-    return res.status(200).json({message : 'File uploaded successfully',success:true,file : newfile,path:`http://localhost:3000/file/${newfile._id}`});
+    return res.status(200).json({message : 'File uploaded successfully',success:true,file : newfile,path:`https://filesharingapp-i2un.onrender.com/file/${newfile._id}`});
 })
 
 app.get('/file/:id',async(req,res)=>{
