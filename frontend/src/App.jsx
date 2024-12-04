@@ -12,7 +12,7 @@ function App() {
       formdata.append("file", file);
       formdata.append("name", file.name);
       try {
-        const response = await fetch("http://localhost:3000/upload", {
+        const response = await fetch("https://filesharingapp-i2un.onrender.com/upload", {
           method: "POST",
           body: formdata,
         });
