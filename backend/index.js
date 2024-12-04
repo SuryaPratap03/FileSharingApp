@@ -10,7 +10,7 @@ configDotenv();
 
 const app = express();
 
-const PORT ='https://filesharingapp-i2un.onrender.com' ;
+const PORT ='https://filesharingapp-i2un.onrender.com'|| 3000 ;
 mongoose.connect(process.env.MONGODB_URL)
 .then(()=>{
     console.log('Mongodb Connected');
