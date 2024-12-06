@@ -4,49 +4,87 @@ import mongoose from 'mongoose';
 import { uploads } from './middleware/upload.js';
 import file from './models/Filemodel.js';
 import path from 'path';
-import fs from 'fs';
 import { configDotenv } from 'dotenv';
 configDotenv();
 
 const app = express();
 
-const PORT ='https://filesharingapp-i2un.onrender.com'|| 3000 ;
+const PORT = process.env.PORT || 3000;
+
+// MongoDB Connection with Error Handling
 mongoose.connect(process.env.MONGODB_URL)
-.then(()=>{
-    console.log('Mongodb Connected');
-})
-.catch((error)=>{
-    console.log(error); 
-})
+  .then(() => {
+    console.log('MongoDB Connected');
+  })
+  .catch((error) => {
+    console.error('MongoDB Connection Failed:', error.message);
+  });
 
+// Enable CORS
 app.use(cors({
-    origin:'http://localhost:5173',
-    credentials:'include',
-}))
+  origin: '*',
+  credentials: true,
+}));
 
-app.post('/upload',uploads.single('file'),async(req,res)=>{
-    console.log('req.file',req?.file);
-    const {originalname,path} = req?.file;
-    const newfile = await file({name:originalname,path:path});
-    newfile.save();
-    return res.status(200).json({message : 'File uploaded successfully',success:true,file : newfile,path:`https://filesharingapp-i2un.onrender.com/file/${newfile._id}`});
-})
-
-app.get('/file/:id',async(req,res)=>{
-    try{
-        const id = await req.params.id;
-        const newfile = await file.findById(id);
-        newfile.downloadContent++;
-        newfile.save();
-        res.download(newfile.path,newfile.name);
-
-        // const absolutePath = path.resolve(newfile.path);
-        // const fileStream = fs.createReadStream(absolutePath);
-        // fileStream.pipe(res);
-    }catch(error){
-        return res.status(500).json({error:error});
+// File Upload Route
+app.post('/upload', uploads.single('file'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, error: 'No file uploaded' });
     }
-})
 
-app.listen(PORT,()=>console.log(`Server started at ${PORT}`)
-)
+    const { originalname, path: filePath } = req.file;
+
+    const newFile = new file({ name: originalname, path: filePath });
+    await newFile.save();
+
+    res.status(200).json({
+      message: 'File uploaded successfully',
+      success: true,
+      file: newFile,
+      path: `${process.env.BACKEND_URL}/file/${newFile._id}`,
+    });
+  } catch (error) {
+    console.error('Error in File Upload:', error.message);
+    res.status(500).json({ success: false, error: 'Failed to upload file' });
+  }
+});
+
+// File Download Route
+app.get('/file/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const newFile = await file.findById(id);
+
+    if (!newFile) {
+      return res.status(404).json({ success: false, error: 'File not found' });
+    }
+
+    // Increment the download count
+    newFile.downloadContent++;
+    await newFile.save();
+
+    // Serve the file for download
+    const absolutePath = path.resolve(newFile.path);
+    res.download(absolutePath, newFile.name, (err) => {
+      if (err) {
+        console.error('Error in File Download:', err.message);
+        res.status(500).json({ success: false, error: 'Failed to download file' });
+      }
+    });
+  } catch (error) {
+    console.error('Error in File Download Route:', error.message);
+    res.status(500).json({ success: false, error: 'Failed to fetch file' });
+  }
+});
+
+// Global Error Handling Middleware (Optional)
+app.use((err, req, res, next) => {
+  console.error('Unexpected Error:', err.message);
+  res.status(500).json({ success: false, error: 'An unexpected error occurred' });
+});
+
+// Start the Server
+app.listen(PORT, () => {
+  console.log(`Server started at http://localhost:${PORT}`);
+});
