@@ -44,8 +44,8 @@ app.post('/upload', uploads.single('file'), async (req, res) => {
     await newFile.save();
 
     res.status(200).json({
-      message: 'File uploaded successfully',
-      success: true,
+      message: 'File uploaded successfully', 
+      success: true, 
       file: newFile,
       path: `${process.env.BACKEND_URL}/file/${newFile._id}`,
     });
