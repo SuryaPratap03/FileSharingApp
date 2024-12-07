@@ -26,6 +26,11 @@ app.use(cors({
   credentials: true,
 }));
 
+app.get('/',(req,res)=>{
+  res.send('<h1>hello world</h1>');
+})
+
+
 // File Upload Route
 app.post('/upload', uploads.single('file'), async (req, res) => {
   try {
